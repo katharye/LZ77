@@ -1,0 +1,5 @@
+.vscode/
+*.h.gch
+*.out
+build/
+test.*
