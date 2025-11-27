@@ -3,3 +3,5 @@
 *.out
 build/
 test.*
+tests/
+input.txt
