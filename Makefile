@@ -1,23 +1,28 @@
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -O2 -Iinclude
-SRCDIR = src
-OBJDIR = build
-BINDIR = .
+CFLAGS = -Wall -O2 -I./include
+SRC_DIR = src
+OBJ_DIR = build
+BIN_DIR = bin
+TARGET = $(BIN_DIR)/archlz77
 
-SOURCES = $(wildcard $(SRCDIR)/*.c)
-OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-TARGET = $(BINDIR)/prog2
+# Находим все файлы .c в src
+SRCS = $(wildcard $(SRC_DIR)/*.c)
+# Превращаем их в список объектных файлов в build
+OBJS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRCS))
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -o $@
+all: directories $(TARGET)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
+directories:
+	@mkdir -p $(OBJ_DIR)
+	@mkdir -p $(BIN_DIR)
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET)
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-.PHONY: clean
+.PHONY: all clean directories
