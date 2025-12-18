@@ -5,3 +5,4 @@ build/
 test.*
 tests/
 input.txt
+.clang-format
