@@ -37,10 +37,12 @@ int pack_archive(char *out_filename, int argc, char *argv[]) {
         } else {
             strncpy((char *)header.filename, argv[i], 255);
         }
+        
+        printf("Encoding file %s: ", base_name);
 
         FILE *in = fopen(argv[i], "rb");
         if (!in) {
-            printf("Error opening input file: %s\n", argv[i]);
+            printf(" ERROR\n");
             continue;
         }
         header.filesize = get_file_size(in);
@@ -50,7 +52,7 @@ int pack_archive(char *out_filename, int argc, char *argv[]) {
         uint16_t *encoded_data = encoder(argv[i], &size, &all_ok);
 
         if (!all_ok || !encoded_data) {
-            printf("Error compressing file: %s\n", argv[i]);
+            printf(" ERROR\n");
             if (encoded_data) free(encoded_data);
             continue;
         }
@@ -61,6 +63,8 @@ int pack_archive(char *out_filename, int argc, char *argv[]) {
         fwrite(encoded_data, sizeof(uint16_t), size, out);
 
         free(encoded_data);
+
+        printf(" OK\n");
     }
     fclose(out);
     return 0;
@@ -75,6 +79,8 @@ int unpack_archive(char *archive_filename, int argc, char *argv[]) {
         fclose(archive);
         return -1;
     }
+
+    printf("Unpacking archive... \n");
 
     char copy[256];
     strncpy(copy, archive_filename, sizeof(copy) - 1);
@@ -110,16 +116,19 @@ int unpack_archive(char *archive_filename, int argc, char *argv[]) {
         char file_path[256];
         snprintf(file_path, sizeof(file_path), "%s/%s", copy, header.filename);
 
+        printf("Decoding %s: ", header.filename);
         FILE *file = fopen(file_path, "wb");
         if (!decoder(archive, file, (unsigned long long)header.filesize, file_pos,
                      file_pos + header.encoded_filesize)) {
             fclose(archive);
             fclose(file);
+            printf("ERROR\n");
             return -1;
         }
         fclose(file);
 
         fseek(archive, file_pos + header.encoded_filesize, SEEK_SET);
+        printf("OK\n");
     }
     fclose(archive);
     return 0;
@@ -143,6 +152,9 @@ void print_archive(char *filename) {
     printf("%-35s | %12s | %12s | %s\n", "File Name", "Original", "Compressed", "Ratio");
     printf("------------------------------------|--------------|--------------|-------\n");
 
+    unsigned long long original_sum = 0;
+    unsigned long long compressed_sum = 0;
+
     for (int i = 0; i < main_header.files_cnt; i++) {
         FileHeader header;
         size_t result = fread(&header, sizeof(FileHeader), 1, file);
@@ -154,6 +166,16 @@ void print_archive(char *filename) {
         printf("%-35s | %12llu | %12llu | %d%%\n", header.filename, (unsigned long long)header.filesize,
                (unsigned long long)header.encoded_filesize, ratio);
 
+        original_sum += header.filesize;
+        compressed_sum += header.encoded_filesize;
+
         fseek(file, header.encoded_filesize, SEEK_CUR);
     }
+    printf("------------------------------------|--------------|--------------|-------\n");
+
+    int ratio_all = compressed_sum * 100 / original_sum;
+    printf("%-35s | %12llu | %12llu | %d%%\n", filename, original_sum,
+            compressed_sum , ratio_all);
+    printf("------------------------------------|--------------|--------------|-------\n\n");
+    
 }

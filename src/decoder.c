@@ -13,7 +13,7 @@ bool decoder(FILE *archive, FILE *f_out, unsigned long long filesize, long start
     long compressed_size = end_file_offset - start_file_offset;
     if (compressed_size <= 0) {
         free(exit_buffer);
-        return true;
+        return false;
     }
 
     uint16_t token;
