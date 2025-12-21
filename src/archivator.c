@@ -113,7 +113,7 @@ int unpack_archive(char *archive_filename, int argc, char *argv[]) {
 
         long file_pos = ftell(archive);
 
-        char file_path[256];
+        char file_path[512];
         snprintf(file_path, sizeof(file_path), "%s/%s", copy, header.filename);
 
         printf("Decoding %s: ", header.filename);
