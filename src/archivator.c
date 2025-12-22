@@ -38,7 +38,7 @@ int pack_archive(char *out_filename, int argc, char *argv[]) {
             strncpy((char *)header.filename, argv[i], 255);
         }
         
-        printf("Encoding file %s: ", base_name);
+        printf("Encoding file %s: ", header.filename);
 
         FILE *in = fopen(argv[i], "rb");
         if (!in) {
